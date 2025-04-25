@@ -309,19 +309,8 @@ for col in merged_df.columns:
 # 打印合并后的 DataFrame
 print(merged_df)
 
-merged_path = "/home/stu/yc/decimer/csv_folder/merged_output.csv"
 
-
-# 检查文件夹是否存在，如果不存在则创建
-folder = os.path.dirname(merged_path)
-if not os.path.exists(folder):
-    os.makedirs(folder)
-
-# 保存文件
-
-merged_df.to_csv(merged_path, index=False, encoding="utf-8")
-
-merged_path = "/home/stu/yc/decimer/csv_folder/merged_output.csv"
+merged_path = "/home/yang/merged_output.csv"
 
 
 # 检查文件夹是否存在，如果不存在则创建
