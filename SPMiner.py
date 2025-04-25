@@ -33,7 +33,7 @@ allapi = {
 }
 file_note={
     "file_name":"test.pdf",
-    "file_path":"/home/stu/yc/decimer/test.pdf"
+    "file_path":"/home/yang/test.pdf"
 }
 
 MODELS = [
@@ -41,9 +41,9 @@ MODELS = [
     {"name": "deepseek-chat", "type": "deepseek"}
 ]  # 对比模型配置
 params = ['化合物名称','吸收波长(λabs)','发射波长(λem)','半峰宽(FWHM)','s1态能级(Es1)','t1态能级(Et1)','带隙(Egap)','HOMO能级','LUMO能级','PLQY(光致发光量子产量)','delta_Est(单三线态能差)',"CIE(色坐标)","EQE(外量子效率)","器件结构","knr(非辐射速率)"]
-image_folder = "/home/stu/yc/decimer/pdf_images"#提取图片保存到该位置
+image_folder = "/home/yang/pdf_images"#提取图片保存到该位置
 raw_name="BN-TP"
-poppler_path = "/home/software/anaconda3/envs/decimer/bin"
+poppler_path = "/usr/bin"
 
 
 def pdf2md(file_note, allapi) :
