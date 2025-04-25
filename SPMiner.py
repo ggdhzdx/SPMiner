@@ -23,6 +23,7 @@ import io
 from collections import defaultdict
 import csv
 import time
+import pandas as pd
 
 allapi = {
     "mineru": "eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJqdGkiOiI1MzMwMzgzOCIsInJvbCI6IlJPTEVfUkVHSVNURVIiLCJpc3MiOiJPcGVuWExhYiIsImlhdCI6MTc0MzA2NjgwOCwiY2xpZW50SWQiOiJsa3pkeDU3bnZ5MjJqa3BxOXgydyIsInBob25lIjoiMTk4NTU4MzI5MzIiLCJvcGVuSWQiOm51bGwsInV1aWQiOiIzZjRiZTU1Yy1hZTM4LTQ5MDQtODUxNy05MDY5ODA4M2ZhMGMiLCJlbWFpbCI6IiIsImV4cCI6MTc0NDI3NjQwOH0.fuP98caz394-3LXyAfGSqHc-vgNZTDBIUo91UxDlc8M4gtCwmCrBgFCmw_UAD_5xxlyYABaTXpbtzFTFKaTxLA",
@@ -34,7 +35,7 @@ file_note={
     "file_name":"test.pdf",
     "file_path":"/home/stu/yc/decimer/test.pdf"
 }
-os.path.splittext(fi)[-1]
+
 MODELS = [
     {"name": "qwen-max", "type": "dashscope"},
     {"name": "deepseek-chat", "type": "deepseek"}
@@ -45,7 +46,7 @@ raw_name="BN-TP"
 poppler_path = "/home/software/anaconda3/envs/decimer/bin"
 
 
-def pdf2md(file_note: dict, allapi: dict) -> string:
+def pdf2md(file_note, allapi) :
     """输入pdf，得到md文件"""
     mineru_api = allapi.get("mineru")
     file_name = file_note.get("file_name")
