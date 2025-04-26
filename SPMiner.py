@@ -37,7 +37,7 @@ file_note={
 }
 
 MODELS = [
-    {"name": "qwen-max", "type": "dashscope"},
+    {"name": "qwen-max", "type": "qwen"},
     {"name": "deepseek-chat", "type": "deepseek"}
 ]  # 对比模型配置
 params = ['化合物名称','吸收波长(λabs)','发射波长(λem)','半峰宽(FWHM)','s1态能级(Es1)','t1态能级(Et1)','带隙(Egap)','HOMO能级','LUMO能级','PLQY(光致发光量子产量)','delta_Est(单三线态能差)',"CIE(色坐标)","EQE(外量子效率)","器件结构","knr(非辐射速率)"]
