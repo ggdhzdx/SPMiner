@@ -133,10 +133,9 @@ class MD2CSV:
         self.params = params
         self.allapi = allapi
         self.headers = []
-        self.all_models_data = []
+        self.all_models_data = {"qwen": [], "deepseek": []}
         self.global_conditions = defaultdict(set)
-        
-        # 初始化处理管道
+
         self.promote_gen = {
             "qwen": self.__gen_promote4qwen,
             "deepseek": self.__gen_promote4deepseek
@@ -147,31 +146,31 @@ class MD2CSV:
         }
         self.string2csv = {
             "qwen": self.__parse_qwen,
-            "gpt": self.__parse_deepseek
+            "deepseek": self.__parse_deepseek
         }
-        
+
     def __gen_promote4qwen(self):
         return (
-                 f"请从以下文本中提取化合物的名称、性质、测试条件、测试结果及其单位，按照下面的格式输出（不要添加其他额外的标记）。如果某个参数、单位或测试条件未能检索到，请标记为NA。如果有其他额外的参数，附在后边，且保持与前面参数一致的格式。\n" +
-                 f"输出格式：\n" +
-                 f"测试条件: 测试结果: 单位: \n" +
-                 f"请按照上述格式逐一输出每个检索到的参数。例如: \n" +
-                 f"发射波长(λem): (1×10^(-5)M, 298K, toluene): 523: nm \n" +
-                 f"发射波长(λem): PhCzBCz doped film (3wt% doping concentration): 528: nm\n" +
-                 f"参数包括:{', '.join(params)}\n文本：{md_content}"
+            f"请从以下文本中提取化合物的名称、性质、测试条件、测试结果及其单位，按照下面的格式输出（不要添加其他额外的标记）。如果某个参数、单位或测试条件未能检索到，请标记为NA。如果有其他额外的参数，附在后边，且保持与前面参数一致的格式。\n" +
+            f"输出格式：\n" +
+            f"测试条件: 测试结果: 单位: \n" +
+            f"请按照上述格式逐一输出每个检索到的参数。例如: \n" +
+            f"发射波长(λem): (1×10^(-5)M, 298K, toluene): 523: nm \n" +
+            f"发射波长(λem): PhCzBCz doped film (3wt% doping concentration): 528: nm\n" +
+            f"参数包括:{', '.join(self.params)}\n文本：{self.md_content}"
         )
 
     def __gen_promote4deepseek(self):
         return (
-                 f"请从以下文本中提取化合物的名称、性质、测试条件、测试结果及其单位，按照下面的格式输出（不要添加其他额外的标记）。如果某个参数、单位或测试条件未能检索到，请标记为NA。如果有其他额外的参数，附在后边，且保持与前面参数一致的格式。\n" +
-                 f"输出格式：\n" +
-                 f"测试条件: 测试结果: 单位: \n" +
-                 f"请按照上述格式逐一输出每个检索到的参数。例如: \n" +
-                 f"发射波长(λem): (1×10^(-5)M, 298K, toluene): 523: nm \n" +
-                 f"发射波长(λem): PhCzBCz doped film (3wt% doping concentration): 528: nm\n" +
-                 f"参数包括:{', '.join(params)}\n文本：{md_content}"
+            f"请从以下文本中提取化合物的名称、性质、测试条件、测试结果及其单位，按照下面的格式输出（不要添加其他额外的标记）。如果某个参数、单位或测试条件未能检索到，请标记为NA。如果有其他额外的参数，附在后边，且保持与前面参数一致的格式。\n" +
+            f"输出格式：\n" +
+            f"测试条件: 测试结果: 单位: \n" +
+            f"请按照上述格式逐一输出每个检索到的参数。例如: \n" +
+            f"发射波长(λem): (1×10^(-5)M, 298K, toluene): 523: nm \n" +
+            f"发射波长(λem): PhCzBCz doped film (3wt% doping concentration): 528: nm\n" +
+            f"参数包括:{', '.join(self.params)}\n文本：{self.md_content}"
         )
-   
+
     def __run_qwen(self, model_name):
         try:
             response = dashscope.Generation.call(
@@ -187,30 +186,24 @@ class MD2CSV:
 
     def __run_deepseek(self, model_name):
         try:
-            # 定义 API 请求参数
-            deepseek_api=allapi.get("deepseek")
             url = "https://api.deepseek.com/v1/chat/completions"
             headers = {
-                "Authorization": f"Bearer {deepseek_api}",
+                "Authorization": f"Bearer {self.allapi.get('deepseek')}",
                 "Content-Type": "application/json"
             }
             data = {
                 "model": "deepseek-chat",
-                "messages":[
+                "messages": [
                     {"role": "system", "content": "你是一个专业的化学信息提取助手，请按照下面的格式回答问题"},
                     {"role": "user", "content": self.promote_gen["deepseek"]()}
                 ],
-            "stream": False
+                "stream": False
             }
-            # 发送请求
             response = requests.post(url, headers=headers, data=json.dumps(data))
-            response.raise_for_status()  # 自动处理 HTTP 错误码
-    
-            # 解析响应
-            result = response.json()
-            return result['choices'][0]['message']['content'].strip()
+            response.raise_for_status()
+            return response.json()['choices'][0]['message']['content'].strip()
         except Exception as e:
-            print(f"deepseek接口错误: {str(e)}")
+            print(f"Deepseek接口错误: {str(e)}")
             return ""
 
     def __parse_qwen(self, response_text, model_name):
@@ -219,68 +212,84 @@ class MD2CSV:
             line = line.strip()
             if not line or ':' not in line:
                 continue
-                
-            # 统一处理中英文冒号
-            parts = re.split(r'[:：]', line, 3)
-            if len(parts) >= 4:
-                param, cond, val, unit = (p.strip() for p in parts)
-                final_val = f"{val} {unit}" if unit not in ("NA", "") else val
-                model_params[param][cond] = final_val
-                self.global_conditions[param].add(cond)
+            
+            match = re.match(
+                r'^\s*(.*?)\s*:\s*(?:$(.*?)$\s*:)?\s*([^:]*?)\s*(?::\s*([^:]*?)\s*)?$', 
+                line
+            )
+            if not match:
+                continue
+            
+            param = match.group(1).strip()
+            cond = match.group(2).strip() if match.group(2) else ''
+            val = match.group(3).strip() or 'NA'
+            unit = match.group(4).strip() if match.group(4) else ''
+            
+            final_val = f"{val} {unit}" if unit and unit.lower() not in ("na", "n/a", "") else val
+            formatted_cond = f"({cond})" if cond else ''
+            
+            model_params[param][formatted_cond] = final_val
+            self.global_conditions[param].add(formatted_cond)
+        
         return model_params
 
     def __parse_deepseek(self, response_text, model_name):
-        model_params = defaultdict(dict)
-        for line in response_text.split('\n'):
-            line = line.strip()
-            if not line or ':' not in line:
-                continue
-                
-            # 适配GPT可能使用的不同分隔符
-            parts = re.split(r'\s*:\s*', line, 3)
-            if len(parts) >= 4:
-                param, cond, val, unit = (p.strip() for p in parts)
-                final_val = f"{val} {unit}" if unit.lower() not in ("na", "n/a") else val
-                model_params[param][cond] = final_val
-                self.global_conditions[param].add(cond)
-        return model_params
+        return self.__parse_qwen(response_text, model_name)
 
-    def __generate_headers(self):
-        headers = ["Model"]
-        for param in self.params:
-            if param in self.global_conditions:
-                sorted_conditions = sorted(
-                    self.global_conditions[param],
-                    key=lambda x: next((
-                        idx for model_data in self.all_models_data
-                        for idx, cond in enumerate(model_data['params'].get(param, {})) if cond == x
-                    ), float('inf'))
-                )
-                for cond in sorted_conditions:
-                    headers.append(f"{param} [{cond}]")
-        return headers
+    def generate_dataframe(self, model_data):
+        # 动态跟踪参数和条件的出现顺序
+        param_order = []  # 参数出现顺序
+        param_conditions = defaultdict(list)  # 每个参数的条件顺序
+        
+        # 遍历所有模型数据，提取参数和条件的顺序
+        for item in model_data:
+            for param, conditions in item['params'].items():
+                # 记录参数首次出现的顺序
+                if param not in param_order:
+                    param_order.append(param)
+                # 记录条件首次出现的顺序
+                for cond in conditions:
+                    if cond not in param_conditions[param]:
+                        param_conditions[param].append(cond)
+        
+        # 构建列顺序
+        columns = ["Model"]
+        for param in param_order:
+            for cond in param_conditions[param]:
+                col = f"{param} [{cond}]" if cond else param
+                columns.append(col)
+        
+        # 填充数据
+        data = []
+        for item in model_data:
+            row = {"Model": item['name']}
+            for param, conditions in item['params'].items():
+                for cond, value in conditions.items():
+                    col = f"{param} [{cond}]" if cond else param
+                    row[col] = value
+            # 保证所有列都存在（缺失则为None）
+            complete_row = {col: row.get(col, None) for col in columns}
+            data.append(complete_row)
+        
+        return pd.DataFrame(data, columns=columns)
 
     def process_all_models(self):
         for model in self.MODELS:
-            print(f"\n正在通过 [{model['name']}] 查询参数...")
             model_type = model['type']
-
             response_text = self.model_run[model_type](model['name'])
-            print(f"[{model['name']}] 原始响应：\n{response_text or '无响应'}")
-
-            # 解析响应
-            if response_text and model_type in self.string2csv:
+            print(f"[{model['name']}] 原始API响应:\n{response_text}\n")
+            
+            if response_text:
                 parser = self.string2csv[model_type]
                 model_params = parser(response_text, model['name'])
-                
-                self.all_models_data.append({
+                self.all_models_data[model_type].append({
                     "name": model['name'],
                     "params": model_params
                 })
 
-        # 生成最终表头
-        self.headers = self.__generate_headers()
-        return self.headers, self.all_models_data, self.params, self.global_conditions
+        qwen_df = self.generate_dataframe(self.all_models_data["qwen"])
+        deepseek_df = self.generate_dataframe(self.all_models_data["deepseek"])
+        return qwen_df, deepseek_df
 
 
 
