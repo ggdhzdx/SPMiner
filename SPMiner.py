@@ -16,7 +16,7 @@ from rdkit.Chem import Draw
 import requests  # 用于发送HTTP请求
 import json  # 用于解析和生成JSON格式数据
 import pdfplumber  # 用于读取PDF文件
-import fitz  # PyMuPDF
+#import fitz  # PyMuPDF
 import hashlib
 import zipfile
 import io
@@ -26,7 +26,7 @@ import time
 import pandas as pd
 
 allapi = {
-    "mineru": "eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJqdGkiOiI1MzMwMzgzOCIsInJvbCI6IlJPTEVfUkVHSVNURVIiLCJpc3MiOiJPcGVuWExhYiIsImlhdCI6MTc0MzA2NjgwOCwiY2xpZW50SWQiOiJsa3pkeDU3bnZ5MjJqa3BxOXgydyIsInBob25lIjoiMTk4NTU4MzI5MzIiLCJvcGVuSWQiOm51bGwsInV1aWQiOiIzZjRiZTU1Yy1hZTM4LTQ5MDQtODUxNy05MDY5ODA4M2ZhMGMiLCJlbWFpbCI6IiIsImV4cCI6MTc0NDI3NjQwOH0.fuP98caz394-3LXyAfGSqHc-vgNZTDBIUo91UxDlc8M4gtCwmCrBgFCmw_UAD_5xxlyYABaTXpbtzFTFKaTxLA",
+    "mineru": "eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJqdGkiOiI1MzMwMzgzOCIsInJvbCI6IlJPTEVfUkVHSVNURVIiLCJpc3MiOiJPcGVuWExhYiIsImlhdCI6MTc0NDYzMDY0NywiY2xpZW50SWQiOiJsa3pkeDU3bnZ5MjJqa3BxOXgydyIsInBob25lIjoiMTk4NTU4MzI5MzIiLCJvcGVuSWQiOm51bGwsInV1aWQiOiI2NjQ4YTdlMi01NzRmLTRkY2MtYjFhZi04ZGM0OGRhZDYwNzUiLCJlbWFpbCI6IiIsImV4cCI6MTc0NTg0MDI0N30.nFdupzOw9c1b2m7JdgvJLfhzKnJ91dsiFcOIBpnskDAYMuStAzqEHeGPFW1MOBeZk2nhOt-QC708BSIO4RcPgg",
     "qwen":"sk-4f7eae96162a4db99e74842c54ee7888",
     "deepseek":"sk-6946dfacf45f48f3a52427903404ff82"
     # 其他 API 配置可以在这里添加
