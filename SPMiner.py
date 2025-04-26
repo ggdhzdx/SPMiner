@@ -43,8 +43,8 @@ MODELS = [
 params = ['化合物名称','吸收波长(λabs)','发射波长(λem)','半峰宽(FWHM)','s1态能级(Es1)','t1态能级(Et1)','带隙(Egap)','HOMO能级','LUMO能级','PLQY(光致发光量子产量)','delta_Est(单三线态能差)',"CIE(色坐标)","EQE(外量子效率)","器件结构","knr(非辐射速率)"]
 image_folder = "/home/yang/pdf_images"#提取图片保存到该位置
 raw_name="BN-TP"
-poppler_path = "/usr/bin"
-
+all_poppler_path = {"laptop":"/usr/bin","home":"/home/yang/miniconda3/envs/decimer/bin/"}
+poppler_path=all_poppler_path.get("home")
 
 def pdf2md(file_note, allapi) :
     """输入pdf，得到md文件"""
@@ -303,7 +303,7 @@ qwen_df, deepseek_df = md2csv.process_all_models()
 
 # 合并 DataFrame（按化合物名称进行合并，使用 outer 合并方式确保所有数据都被保留）
 merged_df = pd.merge(qwen_df, deepseek_df, on='化合物名称', how='outer', suffixes=('_x', '_y'))
-merged_df.drop('Model', axis=1, inplace=True)
+
 # 去除重复列，并选择保留一个列
 # 这里可以通过自定义逻辑，选择要保留的列，去除 `_x` 和 `_y` 后缀
 for col in merged_df.columns:
