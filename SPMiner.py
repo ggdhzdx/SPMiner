@@ -26,7 +26,7 @@ import time
 import pandas as pd
 
 allapi = {
-    "mineru": "eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJqdGkiOiI1MzMwMzgzOCIsInJvbCI6IlJPTEVfUkVHSVNURVIiLCJpc3MiOiJPcGVuWExhYiIsImlhdCI6MTc0NDYzMDY0NywiY2xpZW50SWQiOiJsa3pkeDU3bnZ5MjJqa3BxOXgydyIsInBob25lIjoiMTk4NTU4MzI5MzIiLCJvcGVuSWQiOm51bGwsInV1aWQiOiI2NjQ4YTdlMi01NzRmLTRkY2MtYjFhZi04ZGM0OGRhZDYwNzUiLCJlbWFpbCI6IiIsImV4cCI6MTc0NTg0MDI0N30.nFdupzOw9c1b2m7JdgvJLfhzKnJ91dsiFcOIBpnskDAYMuStAzqEHeGPFW1MOBeZk2nhOt-QC708BSIO4RcPgg",
+    "mineru": "eyJ0eXBlIjoiSldUIiwiYWxnIjoiSFM1MTIifQ.eyJqdGkiOiI1MzMwMzgzOCIsInJvbCI6IlJPTEVfUkVHSVNURVIiLCJpc3MiOiJPcGVuWExhYiIsImlhdCI6MTc0NTgxMDg3NiwiY2xpZW50SWQiOiJsa3pkeDU3bnZ5MjJqa3BxOXgydyIsInBob25lIjoiMTk4NTU4MzI5MzIiLCJvcGVuSWQiOm51bGwsInV1aWQiOiJkNTgwNmY3Zi1kNGExLTRkNTAtYWVmMC1hMjcyYzY2MjQ3OWYiLCJlbWFpbCI6IiIsImV4cCI6MTc0NzAyMDQ3Nn0.JmIFRt40v0phzeHG70gXM63fCdVVJBgQdEd5ZgFTLNUfVN29rNcGfpPQhKCR2PhTtvkW8xbHVLaZ68nmRai1tg",
     "qwen":"sk-4f7eae96162a4db99e74842c54ee7888",
     "deepseek":"sk-6946dfacf45f48f3a52427903404ff82"
     # 其他 API 配置可以在这里添加
@@ -44,7 +44,7 @@ params = ['化合物名称','吸收波长(λabs)','发射波长(λem)','半峰�
 image_folder = "/home/yang/pdf_images"#提取图片保存到该位置
 raw_name="BN-TP"
 all_poppler_path = {"laptop":"/usr/bin","home":"/home/yang/miniconda3/envs/decimer/bin/"}
-poppler_path=all_poppler_path.get("home")
+poppler_path=all_poppler_path.get("laptop")
 
 def pdf2md(file_note, allapi) :
     """输入pdf，得到md文件"""
@@ -330,6 +330,59 @@ if not os.path.exists(folder):
 # 保存文件
 
 merged_df.to_csv(merged_path, index=False, encoding="utf-8")
+
+
+def extract_images_from_pdf(file_note, image_folder):
+    """从 PDF 文件中提取图片并去除重复图片"""
+    file_path = file_note.get("file_path")
+    if not file_path or not os.path.exists(file_path):
+        raise ValueError("无效的文件路径")
+    
+    try:
+        # 确保创建目标文件夹
+        if not os.path.exists(image_folder):
+            os.makedirs(image_folder)
+        
+        # 尝试打开 PDF 文件
+        pdf_document = fitz.open(file_path)
+
+        # 存储图片哈希值，避免重复
+        image_hashes = set()  
+        
+        for page_num in range(len(pdf_document)):
+            page = pdf_document.load_page(page_num)
+            image_list = page.get_images(full=True)
+
+            for img_index, img in enumerate(image_list):
+                xref = img[0]
+                base_image = pdf_document.extract_image(xref)
+                image_bytes = base_image["image"]
+                image_ext = base_image["ext"]
+
+                # 计算图片的哈希值
+                image_hash = hashlib.md5(image_bytes).hexdigest()
+
+                # 如果是新图片，则保存
+                if image_hash not in image_hashes:
+                    image_hashes.add(image_hash)
+                    image_filename = os.path.join(image_folder, f"page_{page_num + 1}_img_{img_index + 1}_{int(time.time() * 1000)}.{image_ext}")
+                    with open(image_filename, "wb") as img_file:
+                        img_file.write(image_bytes)
+                    print(f"保存图片: {image_filename}")
+                else:
+                    print(f"图片在第 {page_num + 1} 页被跳过，因与之前图片重复")
+        
+        # 关闭 PDF 文件
+        pdf_document.close()
+        
+    except Exception as e:
+        print(f"读取 PDF 文件时出错: {e}")
+        # 如果出错，确保不会引用 pdf_document
+        if 'pdf_document' in locals():
+            pdf_document.close()
+
+
+extract_images_from_pdf(file_note, image_folder)
 
 class PngFind:
     def __init__(self, allapi, raw_name, image_folder):
