@@ -7,7 +7,7 @@ from decimer_segmentation import (
     segment_chemical_structures,
     segment_chemical_structures,
 )
-import pathlib
+#import pathlib
 from PyPDF2 import PdfWriter, PdfReader
 import dashscope
 from DECIMER import predict_SMILES
@@ -21,7 +21,7 @@ import hashlib
 import zipfile
 import io
 from collections import defaultdict
-import csv
+#import csv
 import time
 import pandas as pd
 
